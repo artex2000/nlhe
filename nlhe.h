@@ -44,10 +44,16 @@ typedef unsigned short u16;
 typedef unsigned int u32;
 typedef unsigned long u64;
 
+typedef enum {
+    lose,
+    tie,
+    win
+} showdown_t;
+
 typedef struct {
-    u32 bit : 16;
+    u32 bit   : 16;
     u32 rank  : 8;
-    u32 suit : 8;
+    u32 suit  : 8;
 } card_t;
 
 typedef struct {
@@ -56,12 +62,12 @@ typedef struct {
 
 typedef struct {
     card_t card[5];
-} made_hand_t;
+} board_t;
 
 typedef struct {
-    u32 rank1 : 8;
-    u32 rank2 : 8;
-    u32 suited : 8;
+    u32 rank1    : 8;
+    u32 rank2    : 8;
+    u32 suited   : 8;
     u32 reserved : 8;
 } hand_template_t;
 
@@ -72,14 +78,15 @@ typedef struct {
 } hand_value_t;
 
 typedef struct {
-    u64 high_card :8 ;
-    u64 low_pair :8 ;
-    u64 high_pair :8 ;
-    u64 three_kind :8 ;
-    u64 four_kind :8 ;
-    u64 straight :8 ;
-    u64 flush :8 ;
-    u64 rank :8 ;
+    u64 low_pair   : 8;
+    u64 high_pair  : 8;
+    u64 three_kind : 8;
+    u64 four_kind  : 8;
+    u64 straight   : 8;
+    u64 flush      : 8;
+    u64 rank       : 8;
+    u64 reserved   : 8;
+    u8 high_card[5];
 } hand_rank_t;
 
 #endif
