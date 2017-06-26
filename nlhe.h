@@ -6,19 +6,19 @@
 #define CLUBS       2
 #define DIAMONDS    3
 
-#define DEUCE       0
-#define THREE       1
-#define FOUR        2
-#define FIVE        3
-#define SIX         4
-#define SEVEN       5
-#define EIGHT       6
-#define NINE        7
-#define TEN         8
-#define JACK        9
-#define QUEEN       10
-#define KING        11
-#define ACE         12
+#define DEUCE       1
+#define THREE       2
+#define FOUR        3
+#define FIVE        4
+#define SIX         5
+#define SEVEN       6
+#define EIGHT       7
+#define NINE        8
+#define TEN         9
+#define JACK        10
+#define QUEEN       11
+#define KING        12
+#define ACE         13
 
 #define SUITED      0
 #define OFF_SUIT    1
@@ -61,6 +61,10 @@ typedef struct {
 } hand_t;
 
 typedef struct {
+    card_t card[3];
+} flop_t;
+
+typedef struct {
     card_t card[5];
 } board_t;
 
@@ -88,5 +92,21 @@ typedef struct {
     u64 reserved   : 8;
     u8 high_card[5];
 } hand_rank_t;
+
+typedef struct {
+    u8 *set;
+    u8 size;
+} deck_t;
+
+void init_deck (deck_t *deck);
+void remove_card (deck_t *deck, card_t card);
+void remove_hand (deck_t *deck, hand_t *hand);
+void remove_flop (deck_t *deck, flop_t *flop);
+void remove_board (deck_t *deck, board_t *board);
+int deck_to_cards (deck_t *deck, card_t **cards);
+int is_in_deck (deck_t *deck, card_t card);
+
+extern const u16 card_bit[];
+
 
 #endif

@@ -18,7 +18,7 @@ static const char *plural_rank_name[] = {
     "eights", "nines", "tens", "jacks", "queens", "kings", "aces"
 };
 
-static const u16 card_bit[] = {
+const u16 card_bit[] = {
     0x0000,
     0x0001, 0x0002, 0x0004, 0x0008,
     0x0010, 0x0020, 0x0040, 0x0080,
@@ -52,19 +52,19 @@ static u8 char_to_rank (char c)
     switch (c) {
         case 't':
         case 'T':
-            return 9;
+            return TEN;
         case 'j':
         case 'J':
-            return 10;
+            return JACK;
         case 'q':
         case 'Q':
-            return 11;
+            return QUEEN;
         case 'k':
         case 'K':
-            return 12;
+            return KING;
         case 'a':
         case 'A':
-            return 13;
+            return ACE;
         default:
             break;
     }
@@ -76,16 +76,16 @@ static u8 char_to_suit (char c)
     switch (c) {
         case 's':
         case 'S':
-            return 0;
+            return SPADES;
         case 'h':
         case 'H':
-            return 1;
+            return HEARTS;
         case 'c':
         case 'C':
-            return 2;
+            return CLUBS;
         case 'd':
         case 'D':
-            return 3;
+            return DIAMONDS;
         default:
             break;
     }
@@ -95,16 +95,16 @@ static u8 char_to_suit (char c)
 static void print_card (card_t card)
 {
     switch (card.suit) {
-        case 0:
+        case SPADES:
             printf ("%c\u2660 ", print_card_rank[card.rank]);
             break;
-        case 1:
+        case HEARTS:
             printf ("%c\u2665 ", print_card_rank[card.rank]);
             break;
-        case 2:
+        case CLUBS:
             printf ("%c\u2663 ", print_card_rank[card.rank]);
             break;
-        case 3:
+        case DIAMONDS:
             printf ("%c\u2666 ", print_card_rank[card.rank]);
             break;
         default:
@@ -116,50 +116,48 @@ static void print_rank (hand_rank_t *rank)
 {
     switch (rank->rank) {
         case ROYAL_FLUSH:
-            printf ("You have royal flush\n");
+            printf ("royal flush\n");
             break;
         case STRAIGHT_FLUSH:
-            printf ("You have straight flush %s high\n",
-                    single_rank_name[rank->high_card[0]]);
+            printf ("straight flush %s high\n",
+                    single_rank_name[rank->straight]);
             break;
         case FOUR_OF_KIND:
-            printf ("You have four %s with %s kicker\n",
+            printf ("four %s with %s kicker\n",
                     plural_rank_name[rank->four_kind],
                     single_rank_name[rank->high_card[0]]);
             break;
         case FULL_HOUSE:
-            printf ("You have full house %s full of %s\n",
+            printf ("full house %s full of %s\n",
                     plural_rank_name[rank->three_kind],
                     plural_rank_name[rank->high_pair]);
             break;
         case FLUSH:
-            printf ("You have flush %s high\n",
+            printf ("flush %s high\n",
                     single_rank_name[rank->high_card[0]]);
             break;
         case STRAIGHT:
-            printf ("You have straight %s high\n",
-                    (rank->straight == 1) ? //regular straight?
-                        single_rank_name[rank->high_card[0]] :
-                        single_rank_name[4]);   //for wheel straight
+            printf ("straight %s high\n",
+                    single_rank_name[rank->straight]);
             break;
         case THREE_OF_KIND:
-            printf ("You have three %s with %s kicker\n",
+            printf ("three %s with %s kicker\n",
                     plural_rank_name[rank->three_kind],
                     single_rank_name[rank->high_card[0]]);
             break;
         case TWO_PAIRS:
-            printf ("You have two pairs %s and %s with %s kicker\n",
+            printf ("two pairs %s and %s with %s kicker\n",
                     plural_rank_name[rank->high_pair],
                     plural_rank_name[rank->low_pair],
                     single_rank_name[rank->high_card[0]]);
             break;
         case PAIR:
-            printf ("You have pair of %s with %s kicker\n",
+            printf ("pair of %s with %s kicker\n",
                     plural_rank_name[rank->high_pair],
                     single_rank_name[rank->high_card[0]]);
             break;
         case HIGH_CARD:
-            printf ("You have high card %s\n",
+            printf ("high card %s\n",
                     single_rank_name[rank->high_card[0]]);
             break;
         default:
@@ -188,13 +186,27 @@ static void get_hand (hand_t *hand)
 {
     char a[3];
     char b[3];
+    u8 ar, br, as, bs;
     scanf ("%s %s", a, b);
-    hand->card[0].rank = char_to_rank (a[0]);
-    hand->card[0].suit = char_to_suit (a[1]);
-    hand->card[0].bit = card_bit[hand->card[0].rank];
-    hand->card[1].rank = char_to_rank (b[0]);
-    hand->card[1].suit = char_to_suit (b[1]);
-    hand->card[1].bit = card_bit[hand->card[1].rank];
+    ar = char_to_rank (a[0]);
+    as = char_to_suit (a[1]);
+    br = char_to_rank (b[0]);
+    bs = char_to_suit (b[1]);
+    if (ar >= br) {
+        hand->card[0].rank = ar;
+        hand->card[0].suit = as;
+        hand->card[0].bit = card_bit[ar];
+        hand->card[1].rank = br;
+        hand->card[1].suit = bs;
+        hand->card[1].bit = card_bit[br];
+    } else {
+        hand->card[0].rank = br;
+        hand->card[0].suit = bs;
+        hand->card[0].bit = card_bit[br];
+        hand->card[1].rank = ar;
+        hand->card[1].suit = as;
+        hand->card[1].bit = card_bit[ar];
+    }
 }
 
 static void get_board (board_t *board)
@@ -249,23 +261,21 @@ static u8 is_flush (hand_value_t *value)
 /***
  * returns:
  *  0 - no straight
- *  1 - regular straight
- *  2 - wheel (Ace to Five)
 ***/
 static u8 is_straight (hand_value_t *value)
 {
-    int i;
-    for (i = 0; i < 9; i++) {
+    int i, j = 13;
+    for (i = 0; i < 10; i++, j--) {
         if ((value->straight & straight_template[i]) == straight_template[i])
-            return 1;
+            return j;
     }
-    return ((value->straight & straight_template[9]) == straight_template[9]) ? 2 : 0;
+    return 0;
 }
 
 static void comprehend_rank (hand_rank_t *rank)
 {
     if (rank->straight && rank->flush) {
-        if (rank->straight == 1 && rank->high_card[0] == 13)
+        if (rank->straight == ACE)
             rank->rank = ROYAL_FLUSH;
         else
             rank->rank = STRAIGHT_FLUSH;
@@ -352,7 +362,7 @@ showdown_t compare_same_ranks (hand_rank_t *hero, hand_rank_t *villain)
         case ROYAL_FLUSH:
             return tie;
         case STRAIGHT_FLUSH:
-            return compare_card_rank (hero->high_card[0], villain->high_card[0]);
+            return compare_card_rank (hero->straight, villain->straight);
         case FOUR_OF_KIND:
             tmp = compare_card_rank (hero->four_kind, villain->four_kind);
             return (tmp != tie) ? tmp :
@@ -362,16 +372,13 @@ showdown_t compare_same_ranks (hand_rank_t *hero, hand_rank_t *villain)
             return (tmp != tie) ? tmp :
                 compare_card_rank (hero->high_pair, villain->high_pair);
         case FLUSH:
-            return compare_card_rank (hero->high_card[0], villain->high_card[0]);
+            return compare_card_ranks (hero->high_card, villain->high_card, 5);
         case STRAIGHT:
-            return compare_card_rank (hero->high_card[0], villain->high_card[0]);
+            return compare_card_rank (hero->straight, villain->straight);
         case THREE_OF_KIND:
             tmp = compare_card_rank (hero->three_kind, villain->three_kind);
-            if (tmp != tie)
-                return tmp;
-            tmp = compare_card_rank (hero->high_card[0], villain->high_card[0]);
             return (tmp != tie) ? tmp :
-                compare_card_rank (hero->high_card[1], villain->high_card[1]);
+                compare_card_ranks (hero->high_card, villain->high_card, 2);
         case TWO_PAIRS:
             tmp = compare_card_rank (hero->high_pair, villain->high_pair);
             if (tmp != tie)
@@ -403,31 +410,40 @@ showdown_t compare_ranks (hand_rank_t *hero, hand_rank_t *villain)
 
 int main (void)
 {
-    hand_t hand;
+    hand_t hero;
+    hand_t villain;
     board_t board;
     hand_value_t value;
-    hand_rank_t hero;
-    hand_rank_t villain;
+    hand_rank_t hero_r;
+    hand_rank_t villain_r;
     showdown_t result;
 
-    printf ("enter hand: ");
-    get_hand (&hand);
+    printf ("enter hero hand: ");
+    get_hand (&hero);
+    printf ("enter villain hand: ");
+    get_hand (&villain);
     printf ("enter board: ");
     get_board (&board);
-    print_hand (&hand);
+    printf ("Hero: ");
+    print_hand (&hero);
+    printf ("Villain: ");
+    print_hand (&villain);
+    printf ("Board: ");
     print_board (&board);
-    hand_to_value (&hand, &board, &value);
-    value_to_rank (&value, &hero);
-    board_to_value (&board, &value);
-    value_to_rank (&value, &villain);
+    hand_to_value (&hero, &board, &value);
+    value_to_rank (&value, &hero_r);
+    hand_to_value (&villain, &board, &value);
+    value_to_rank (&value, &villain_r);
     printf ("You have: \n");
-    print_rank (&hero);
-    printf ("Board reads: \n");
-    print_rank (&villain);
-    result = compare_ranks (&hero, &villain);
+    print_rank (&hero_r);
+    printf ("Villain has: \n");
+    print_rank (&villain_r);
+    result = compare_ranks (&hero_r, &villain_r);
     if (result == win)
         printf ("You won\n");
+    else if (result == lose)
+        printf ("You lost\n");
     else
-        printf ("You can't beat the board\n");
+        printf ("You tie\n");
     return 0;
 }
