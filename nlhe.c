@@ -408,6 +408,23 @@ showdown_t compare_ranks (hand_rank_t *hero, hand_rank_t *villain)
         return compare_same_ranks (hero, villain);
 }
 
+void test_random (void)
+{
+    deck_t deck;
+    card_t card;
+    char c;
+
+    init_deck (&deck);
+    rand_init ();
+    do {
+        card = random_card (&deck);
+        print_card (card);
+        printf ("\nEnter q to quit, any other key to continue: ");
+        c = getchar ();
+        putchar (c);
+    } while (c != 'q');
+}
+
 int main (void)
 {
     hand_t hero;
@@ -418,6 +435,7 @@ int main (void)
     hand_rank_t villain_r;
     showdown_t result;
 
+    test_random ();
     printf ("enter hero hand: ");
     get_hand (&hero);
     printf ("enter villain hand: ");

@@ -106,6 +106,9 @@ void remove_board (deck_t *deck, board_t *board);
 int deck_to_cards (deck_t *deck, card_t **cards);
 int is_in_deck (deck_t *deck, card_t card);
 
+void rand_init (void);
+card_t random_card (deck_t *deck);
+
 extern const u16 card_bit[];
 
 
