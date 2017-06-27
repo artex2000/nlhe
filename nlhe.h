@@ -45,9 +45,9 @@ typedef unsigned int u32;
 typedef unsigned long u64;
 
 typedef enum {
-    lose,
-    tie,
-    win
+    LOSE,
+    TIE,
+    WIN
 } showdown_t;
 
 typedef struct {
@@ -98,6 +98,12 @@ typedef struct {
     u8 size;
 } deck_t;
 
+typedef struct {
+    int win;
+    int lose;
+    int tie;
+} rundown_t;
+
 void init_deck (deck_t *deck);
 void remove_card (deck_t *deck, card_t card);
 void remove_hand (deck_t *deck, hand_t *hand);
@@ -108,6 +114,18 @@ int is_in_deck (deck_t *deck, card_t card);
 
 void rand_init (void);
 card_t random_card (deck_t *deck);
+void random_hand (deck_t *deck, hand_t *hand);
+void random_board (deck_t *deck, board_t *board);
+
+void get_board (board_t *board);
+void get_hand (hand_t *hand);
+
+void print_rank (hand_rank_t *rank);
+void print_board (board_t *board);
+void print_hand (hand_t *hand);
+
+showdown_t showdown (hand_t *hero, hand_t *villain, board_t *board);
+void hand_vs_hand (hand_t *hero, hand_t *villain);
 
 extern const u16 card_bit[];
 

@@ -57,6 +57,7 @@ int deck_to_cards (deck_t *deck, card_t **cards)
             }
         }
     }
+    *cards = tmp;
     return c;
 }
 
