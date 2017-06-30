@@ -11,6 +11,12 @@ void init_deck (deck_t *deck)
     deck->size = 52;
 }
 
+void release_deck (deck_t *deck)
+{
+    free (deck->set);
+    deck->size = 0;
+}
+
 void remove_card (deck_t *deck, card_t card)
 {
     int idx;
@@ -41,23 +47,21 @@ void remove_board (deck_t *deck, board_t *hand)
     remove_card (deck, hand->card[4]);
 }
 
-int deck_to_cards (deck_t *deck, card_t **cards)
+int deck_to_cards (deck_t *deck, card_t *cards)
 {
-    card_t cr, *tmp;
+    card_t cr;
     int i, j, c = 0;
 
-    tmp = malloc (sizeof (card_t) * deck->size);
     for (i = 0; i < 4; i++) {
         for (j = 1; j < 14; j++) {
             if (deck->set[i * 14 + j] == 0) {
                 cr.rank = j;
                 cr.suit = i;
                 cr.bit = card_bit[j];
-                tmp[c++] = cr;
+                cards[c++] = cr;
             }
         }
     }
-    *cards = tmp;
     return c;
 }
 

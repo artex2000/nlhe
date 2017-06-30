@@ -35,6 +35,7 @@ static void hand_to_value (hand_t *hand, board_t *board, hand_value_t *value)
     board_to_value (board, value);
     for (i = 0; i < 2; i++) {
         value->straight |= hand->card[i].bit;
+        value->straight_flush[hand->card[i].suit] |= hand->card[i].bit;
         value->flush[hand->card[i].suit]++;
         value->ranks[hand->card[i].rank]++;
     }
@@ -42,17 +43,16 @@ static void hand_to_value (hand_t *hand, board_t *board, hand_value_t *value)
 
 /***
  * returns:
- *  0 - no flush
- *  1 - flush
+ *  0xff - no flush
 ***/
 static u8 is_flush (hand_value_t *value)
 {
     int i;
     for (i = 0; i < 4; i++) {
         if (value->flush[i] >= 5)
-            return 1;
+            return i;
     }
-    return 0;
+    return 0xff;
 }
 
 /***
@@ -69,10 +69,20 @@ static u8 is_straight (hand_value_t *value)
     return 0;
 }
 
+static u8 is_straight_flush (hand_value_t *value, int suit)
+{
+    int i, j = 13;
+    for (i = 0; i < 10; i++, j--) {
+        if ((value->straight_flush[suit] & straight_template[i]) == straight_template[i])
+            return j;
+    }
+    return 0;
+}
+
 static void comprehend_rank (hand_rank_t *rank)
 {
-    if (rank->straight && rank->flush) {
-        if (rank->straight == ACE)
+    if (rank->straight_flush) {
+        if (rank->straight_flush == ACE)
             rank->rank = ROYAL_FLUSH;
         else
             rank->rank = STRAIGHT_FLUSH;
@@ -101,6 +111,9 @@ static void value_to_rank (hand_value_t *value, hand_rank_t *rank)
     memset (rank, 0, sizeof (*rank));
     rank->flush = is_flush (value);
     rank->straight = is_straight (value);
+
+    if (rank->flush != 0xff && rank->straight != 0)
+        rank->straight_flush = is_straight_flush (value, rank->flush);
     for (i = 13; i > 0; i--) {
         switch (value->ranks[i]) {
             case 4:
@@ -159,7 +172,7 @@ static showdown_t compare_same_ranks (hand_rank_t *hero, hand_rank_t *villain)
         case ROYAL_FLUSH:
             return TIE;
         case STRAIGHT_FLUSH:
-            return compare_card_rank (hero->straight, villain->straight);
+            return compare_card_rank (hero->straight_flush, villain->straight_flush);
         case FOUR_OF_KIND:
             tmp = compare_card_rank (hero->four_kind, villain->four_kind);
             return (tmp != TIE) ? tmp :
@@ -215,6 +228,8 @@ showdown_t showdown (hand_t *hero, hand_t *villain, board_t *board)
     value_to_rank (&value, &hero_r);
     hand_to_value (villain, board, &value);
     value_to_rank (&value, &villain_r);
+    print_rank (&hero_r);
+    print_rank (&villain_r);
 
     return compare_ranks (&hero_r, &villain_r);
 }

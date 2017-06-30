@@ -17,7 +17,8 @@ static const char *plural_rank_name[] = {
     "eights", "nines", "tens", "jacks", "queens", "kings", "aces"
 };
 
-static void print_card (card_t card)
+//static void print_card (card_t card)
+void print_card (card_t card)
 {
     switch (card.suit) {
         case SPADES:
@@ -107,3 +108,26 @@ void print_board (board_t *board)
     printf ("\n");
 }
 
+void print_meta (meta_hand_t m)
+{
+    char s[4];
+    s[0] = print_card_rank[m.rank1];
+    s[1] = print_card_rank[m.rank2];
+    if (m.rank1 == m.rank2) {
+        s[2] = 0;
+    } else {
+        s[2] = (m.suited) ? 's' : 'o';
+        s[3] = 0;
+    }
+    printf ("%s\n", s);
+}
+
+void print_hand_as_meta (hand_t *hand)
+{
+    meta_hand_t m;
+    m.rank1 = hand->card[0].rank;
+    m.rank2 = hand->card[1].rank;
+    m.suited = (hand->card[0].suit == hand->card[1].suit) ? 1 : 0;
+    m.reserved = 0;
+    print_meta (m);
+}

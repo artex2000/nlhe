@@ -100,4 +100,18 @@ void get_board (board_t *board)
     }
 }
 
+meta_hand_t get_meta_hand (void)
+{
+    meta_hand_t r;
+    char a[4];
+
+    printf ("Enter meta hand: ");
+    scanf ("%s", a);
+    r.rank1 = char_to_rank (a[0]);
+    r.rank2 = char_to_rank (a[1]);
+    r.suited = (a[2] == 's') ? 1 : 0;
+    r.reserved = 0;
+
+    return r;
+}
 

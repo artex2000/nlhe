@@ -73,10 +73,11 @@ typedef struct {
     u32 rank2    : 8;
     u32 suited   : 8;
     u32 reserved : 8;
-} hand_template_t;
+} meta_hand_t;
 
 typedef struct {
     u16 straight;
+    u16 straight_flush[4];
     u8  flush[4];
     u8  ranks[14]; //use ranks from 1 to 13 to have 0 reserved
 } hand_value_t;
@@ -88,8 +89,8 @@ typedef struct {
     u64 four_kind  : 8;
     u64 straight   : 8;
     u64 flush      : 8;
+    u64 straight_flush   : 8;
     u64 rank       : 8;
-    u64 reserved   : 8;
     u8 high_card[5];
 } hand_rank_t;
 
@@ -105,11 +106,12 @@ typedef struct {
 } rundown_t;
 
 void init_deck (deck_t *deck);
+void release_deck (deck_t *deck);
 void remove_card (deck_t *deck, card_t card);
 void remove_hand (deck_t *deck, hand_t *hand);
 void remove_flop (deck_t *deck, flop_t *flop);
 void remove_board (deck_t *deck, board_t *board);
-int deck_to_cards (deck_t *deck, card_t **cards);
+int deck_to_cards (deck_t *deck, card_t *cards);
 int is_in_deck (deck_t *deck, card_t card);
 
 void rand_init (void);
@@ -119,13 +121,21 @@ void random_board (deck_t *deck, board_t *board);
 
 void get_board (board_t *board);
 void get_hand (hand_t *hand);
+meta_hand_t get_meta_hand (void);
+void get_any_hand (deck_t *deck, hand_t *hand, meta_hand_t meta);
+int get_all_hands (deck_t *deck, hand_t *hand, meta_hand_t meta);
 
 void print_rank (hand_rank_t *rank);
 void print_board (board_t *board);
 void print_hand (hand_t *hand);
+void print_hand_as_meta (hand_t *hand);
+void print_meta (meta_hand_t m);
 
 showdown_t showdown (hand_t *hero, hand_t *villain, board_t *board);
-void hand_vs_hand (hand_t *hero, hand_t *villain);
+void hand_vs_hand (hand_t *hero, hand_t *villain, rundown_t *run);
+void hand_vs_range (hand_t *hero, hand_t *villain, int size, rundown_t *run);
+
+void test_meta (void);
 
 extern const u16 card_bit[];
 
